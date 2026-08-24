@@ -28,8 +28,7 @@ pf_host=$(ip route | grep tun | grep -v src | head -1 | awk '{ print $3 }')
 
 get_auth_token () {
             tok=$(curl --insecure --silent --show-error --request POST --max-time $curl_max_time \
-                 --header "Content-Type: application/json" \
-                 --data "{\"username\":\"$user\",\"password\":\"$pass\"}" \
+                 --form "username=$user" --form "password=$pass" \
                 "https://www.privateinternetaccess.com/api/client/v2/token" | jq -r '.token')
             [ $? -ne 0 ] && echo "Failed to acquire new auth token" && exit 1
             #echo "$tok"
@@ -46,6 +45,12 @@ get_sig () {
     echo "$(date): getSignature error"
     echo $pf_getsig
     echo "the has been a fatal_error"
+    echo "#######################"
+    echo "        ERROR        "
+    echo "#######################"
+    echo "Please make sure that your selected server supports port forwarding"
+    echo "If it does not, please select a server that does, or set DISABLE_PORT_UPDATER=true"
+    exit
   fi
   pf_payload=$(echo $pf_getsig | jq -r .payload)
   pf_getsignature=$(echo $pf_getsig | jq -r .signature)

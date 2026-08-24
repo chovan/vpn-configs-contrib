@@ -9,11 +9,20 @@ cd "${0%/*}"
 find . ! -name '*.sh' -delete
 
 # Get updated configuration zip from TorGuard
-curl -L https://privado.io/apps/ovpn_configs.zip -o privado_configs.zip \
-  && unzip -j privado_configs.zip && rm -f privado_configs.zip
+curl -L https://privado.io/apps/ovpn_configs.zip -o privado_configs.zip &&
+	unzip -j privado_configs.zip && rm -f privado_configs.zip
 
-# Update configs with correct paths
-sed -i "s/auth-user-pass/auth-user-pass \/config\/openvpn-credentials.txt/" *.ovpn
+# Delete "tcp-scramble" files
+rm -f ./*.tcp-scramble.ovpn
 
-# Create symlink for default.ovpn
-ln -s ams-005.ovpn default.ovpn
+for f in *.default.ovpn; do
+	fn="${f%.default.ovpn}.ovpn"
+	# Strip out ".default" from filenames
+	mv -- "$f" "$fn"
+	# Update configs with correct paths
+	sed -i "s/auth-user-pass/auth-user-pass \/config\/openvpn-credentials.txt/" "$fn"
+done
+
+# Create symlink for default.ovpn using the first ams-XXX.ovpn file
+files=(ams-*.ovpn)
+ln -sf "${files[1]}" default.ovpn
